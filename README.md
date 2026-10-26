@@ -69,10 +69,24 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\build.ps1 -Zig 'C:\pat
 - DDC/CI 返回的是显示器报告的亮度设置值，不是实测亮度（nits）。
 - 当前版本没有型号筛选；多台外屏会分别按自己的当前亮度应用变化量。
 - ARM64 版尚无实机验证；通用启动器是 32 位 x86 程序，可通过 Windows 的兼容支持在 x64 和 ARM64 系统上运行，然后启动相应架构的原生后台程序。
-- 发布的 EXE 尚未签名。作为产品分发前，应做代码签名和目标机型测试。
+- 仓库中的 `LumaNudge.exe` 已使用本地自签名证书签名，并附带 DigiCert RFC 3161 时间戳。签名仅覆盖外层通用启动器；内嵌的 x64 / ARM64 程序仍未单独签名。自行构建的文件也不会自动签名。
+- 自签名证书不会被其他电脑默认信任，也不能消除 SmartScreen 提示。正式公开分发时，应使用受信任的代码签名方案并完成目标机型测试。
 - 这是用户态工具，不包含显示器驱动、Windows Update 自动分发或厂家专用 DDC/CI 命令。
 
 源码不包含网络通信或遥测功能。技术细节见[设计说明](docs/ARCHITECTURE.md)，构建方法见[构建文档](docs/BUILD.md)，兼容性和排查方法见[兼容性文档](docs/COMPATIBILITY.md)。发布前请按[测试方案](docs/TESTING.md)验证，并参考[GitHub 发布清单](docs/RELEASING.md)。
+
+### 签名与文件校验
+
+签名者名称为 `LumaNudge (Self-Signed)`，这是本地自签名标识，并非认证机构验证过的发布者身份。[公开证书](certs/LumaNudge-self-signed.cer)可用于检查签名；私钥和密码仅保存在本机，不纳入 Git。DigiCert 提供的是时间戳服务，不是本项目的代码签名证书。
+
+下载后，可在 Windows PowerShell 中检查签名信息和 SHA-256，并与仓库中的 [SHA256SUMS](SHA256SUMS) 对照：
+
+```powershell
+Get-AuthenticodeSignature .\LumaNudge.exe | Format-List Status, StatusMessage, SignerCertificate, TimeStamperCertificate
+Get-FileHash .\LumaNudge.exe -Algorithm SHA256
+```
+
+在尚未信任该自签名证书的电脑上，签名状态可能显示为不受信任。这不等同于文件未签名。当前签名及时间戳已使用 `osslsigncode` 验证，验证时显式信任了上述公开证书；尚未在 Windows 上复测签名后的程序。
 
 ### 许可证
 
@@ -147,10 +161,24 @@ When targets are disconnected, a sleeping background process listens for display
 - The reported brightness value is a monitor setting, not measured luminance in nits.
 - There is no model filter. Each external target receives the same change relative to its own current brightness.
 - The ARM64 payload has not been tested on ARM64 hardware. The universal launcher is a 32-bit x86 program, which Windows can run on x64 and ARM64 systems before it starts the matching native payload.
-- The executables are unsigned. Sign them and validate your target hardware before product distribution.
+- The repository's `LumaNudge.exe` has a local self-signed signature and a DigiCert RFC 3161 timestamp. Only the outer universal launcher is signed; the embedded x64 / ARM64 programs remain individually unsigned. Local builds are not signed automatically.
+- Other computers do not trust this self-signed certificate by default, and it does not remove SmartScreen warnings. Use a trusted code signing solution and validate target hardware for production distribution.
 - This is a user mode utility. It does not contain a monitor driver, Windows Update distribution package, or vendor specific DDC/CI commands.
 
 There is no network communication or telemetry in the source. See the [architecture](docs/ARCHITECTURE.md), [build guide](docs/BUILD.md), [compatibility guide](docs/COMPATIBILITY.md), [test plan](docs/TESTING.md), and [release checklist](docs/RELEASING.md).
+
+### Signature and file verification
+
+The signer is `LumaNudge (Self-Signed)`, a local signing identity rather than a publisher identity verified by a certificate authority. The [public certificate](certs/LumaNudge-self-signed.cer) is available for signature inspection; the private key and password remain local and are excluded from Git. DigiCert provides the timestamp service, not this project's code signing certificate.
+
+After downloading, inspect the signature and SHA-256 in Windows PowerShell, then compare the hash with [SHA256SUMS](SHA256SUMS):
+
+```powershell
+Get-AuthenticodeSignature .\LumaNudge.exe | Format-List Status, StatusMessage, SignerCertificate, TimeStamperCertificate
+Get-FileHash .\LumaNudge.exe -Algorithm SHA256
+```
+
+A computer that does not trust this self-signed certificate may report an untrusted signature. This does not mean the file is unsigned. The signature and timestamp were verified with `osslsigncode`, explicitly trusting the public certificate above; the signed application has not yet been retested on Windows.
 
 ### License
 
