@@ -1,8 +1,10 @@
-# BrightnessSync for Windows
+# LumaNudge for Windows
 
-让外接显示器跟随 Windows 亮度变化的轻量级原生程序。支持 x64 和 ARM64 Windows 10/11，使用显示器的 DDC/CI 亮度控制（VCP `0x10`）。程序按**亮度变化量**调整各外屏，保留每台外屏原有的亮度差。
+LumaNudge 是一个让外接显示器跟随 Windows 亮度变化的轻量级原生程序，适用于连接外屏的笔记本和多显示器桌面环境。面向 x64 和 ARM64 Windows 10/11，使用显示器的 DDC/CI 亮度控制（VCP `0x10`）。程序按**亮度变化量**调整各外屏，在未触及亮度上下限时保留每台外屏原有的亮度差。
 
 [English README](README.en.md)
+
+**[下载 LumaNudge.exe](../../raw/refs/heads/main/LumaNudge.exe)** · [构建说明](docs/BUILD.md) · [兼容性与排查](docs/COMPATIBILITY.md)
 
 > 项目现状：可运行的实验版。x64 已在 Windows 实机测试；ARM64 已交叉编译，尚未在 ARM64 电脑上实机验证。
 
@@ -18,9 +20,11 @@
 
 ## 安装和使用
 
-1. 从项目的 GitHub Releases 下载 `BrightnessSync-native-universal.exe`，或从源码[自行构建](docs/BUILD.md)。通用文件会按系统架构运行 x64 或 ARM64 原生程序。
-2. 双击程序，输入 `5` 查看可读取的显示器；确认目标后输入 `1` 安装并开启。安装当前用户的任务计划，无需管理员权限。
+1. 下载仓库中的 **[LumaNudge.exe](../../raw/refs/heads/main/LumaNudge.exe)**。也可打开[文件页面](LumaNudge.exe)，点击 **Download raw file** 下载。私有仓库需要先登录有访问权限的 GitHub 账号。
+2. 在 Windows 上双击 `LumaNudge.exe`。通用启动器会选择 x64 或 ARM64 原生程序，无需安装 Python 或 .NET。输入 `5` 查看可读取的显示器；确认目标后输入 `1` 安装并开启。安装当前用户的任务计划，无需管理员权限。
 3. 以后从开始菜单打开 **Brightness Sync (DDC-CI)**，可选择 `2` 暂停、`3` 继续、`4` 卸载、`5` 查看显示器。
+
+> 对外下载文件名为 `LumaNudge.exe`。当前程序界面、开始菜单快捷方式和内部安装路径仍使用 **Brightness Sync / BrightnessSync** 名称。
 
 命令行参数：
 
@@ -35,6 +39,23 @@
 | `--uninstall` | 移除任务、快捷方式和安装文件 |
 
 后台任务使用内部参数 `--run`。安装文件位于 `%USERPROFILE%\.BrightnessSync\BrightnessSync.exe`。升级时先暂停旧版，等后台进程退出，再运行新版选择安装。
+
+在 EXE 所在目录打开 PowerShell，也可通过命令行安装或暂停：
+
+```powershell
+.\LumaNudge.exe --install
+.\LumaNudge.exe --stop
+```
+
+## 从源码构建
+
+准备 Windows、PowerShell 5.1 或更新版本及 Zig，按[构建说明](docs/BUILD.md)执行：
+
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\build.ps1 -Zig 'C:\path\to\zig.exe'
+```
+
+当前脚本在 `dist/` 下生成 x64、ARM64 和通用 EXE；通用文件名仍为 `BrightnessSync-native-universal.exe`，分发时可重命名为 `LumaNudge.exe`。`dist/` 不纳入 Git，仓库根目录保留供下载的 `LumaNudge.exe`。
 
 ## 热插拔与资源占用
 
